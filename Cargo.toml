@@ -1,0 +1,47 @@
+[package]
+name = "agent-panel-gpui"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+editor = { git = "https://github.com/zed-industries/zed" }
+client = { git = "https://github.com/zed-industries/zed" }
+clock = { git = "https://github.com/zed-industries/zed" }
+db = { git = "https://github.com/zed-industries/zed" }
+feature_flags = { git = "https://github.com/zed-industries/zed" }
+fs = { git = "https://github.com/zed-industries/zed" }
+icons = { git = "https://github.com/zed-industries/zed" }
+gpui = { git = "https://github.com/zed-industries/zed" }
+language = { git = "https://github.com/zed-industries/zed", features = [
+    "test-support",
+] }
+node_runtime = { git = "https://github.com/zed-industries/zed" }
+http_client = { git = "https://github.com/zed-industries/zed", features = [
+    "test-support",
+] }
+project = { git = "https://github.com/zed-industries/zed", features = [
+    "test-support",
+] }
+proto = { git = "https://github.com/zed-industries/zed" }
+session = { git = "https://github.com/zed-industries/zed", features = [
+    "test-support",
+] }
+settings = { git = "https://github.com/zed-industries/zed" }
+theme = { git = "https://github.com/zed-industries/zed" }
+ui = { git = "https://github.com/zed-industries/zed" }
+ui_macros = { git = "https://github.com/zed-industries/zed" }
+workspace = { git = "https://github.com/zed-industries/zed" }
+zed_actions = { git = "https://github.com/zed-industries/zed" }
+gpui_tokio = { git = "https://github.com/zed-industries/zed" }
+clap = { version = "4.4", features = ["derive"] }
+dialoguer = { version = "0.11.0", features = ["fuzzy-select"] }
+indoc = "2"
+log = { version = "0.4.16", features = ["kv_unstable_serde", "serde"] }
+simplelog = "0.12.2"
+strum = { version = "0.27.0", features = ["derive"] }
+serde = { version = "1.0.195", features = ["derive"] }
+serde_json = "1.0.111"
+schemars = "1.0.4"
+anyhow = "1"
+libc = "0.2"
+futures = "0.3.31"
