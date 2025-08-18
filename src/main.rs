@@ -5,7 +5,6 @@ mod thread;
 use agent_panel::*;
 use gpui::*;
 use std::sync::Arc;
-use thread::*;
 
 fn main() {
     Application::new().run(|app| {
@@ -16,10 +15,9 @@ fn main() {
         workspace::init_settings(app);
         editor::init(app);
 
-        // Create minimal fake filesystem
-        let fs = Arc::new(fs::FakeFs::new(app.background_executor().clone()));
-        app.open_window(WindowOptions::default(), |_window, app| {
-            app.new(|_cx| AgentPanel::new(fs, _window, app))
+        let fs: Arc<dyn project::Fs> = fs::FakeFs::new(app.background_executor().clone());
+        app.open_window(WindowOptions::default(), move |window, cx| {
+            cx.new(|cx| AgentPanel::new(fs.clone(), window, cx))
         })
         .unwrap();
     });

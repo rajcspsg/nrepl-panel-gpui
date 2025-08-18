@@ -300,19 +300,22 @@ impl AgentPanel {
                         .justify_center()
                         .items_center()
                         .gap_1()
-                        .child(h_flex().child(Headline::new("Welcome to the Agent Panel")))
+                        .child(h_flex().child(Headline::new("Welcome to the Nrepl Panel")))
                         .when(true, |parent| {
                             parent
-                                .child(h_flex().child(
-                                    Label::new("Ask and build anything.").color(Color::Muted),
-                                ))
+                                .child(
+                                    h_flex().child(
+                                        Label::new("Ask and evaluate any s-expression.")
+                                            .color(Color::Muted),
+                                    ),
+                                )
                                 .child(
                                     v_flex()
                                         .mt_2()
                                         .gap_1()
                                         .max_w_48()
                                         .child(
-                                            Button::new("context", "Add Context")
+                                            Button::new("context", "Start NRepl Console")
                                                 .label_size(LabelSize::Small)
                                                 .icon(IconName::FileCode)
                                                 .icon_position(IconPosition::Start)
@@ -321,7 +324,7 @@ impl AgentPanel {
                                                 .full_width(),
                                         )
                                         .child(
-                                            Button::new("mode", "Switch Model")
+                                            Button::new("mode", "Switch NRepl Panel")
                                                 .label_size(LabelSize::Small)
                                                 .icon(IconName::DatabaseZap)
                                                 .icon_position(IconPosition::Start)
@@ -330,7 +333,7 @@ impl AgentPanel {
                                                 .full_width(),
                                         )
                                         .child(
-                                            Button::new("settings", "View Settings")
+                                            Button::new("settings", "View NRepl Settings")
                                                 .label_size(LabelSize::Small)
                                                 .icon(IconName::Settings)
                                                 .icon_position(IconPosition::Start)
@@ -941,12 +944,15 @@ impl Panel for AgentPanel {
 }
 
 impl Render for AgentPanel {
-    fn render(&mut self, _window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
+    /*fn render(&mut self, _window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
         div()
             .id("agent-panel")
             .size_full()
             .child(div().p_4().child("Agent Panel Content"))
             .child(self.render_toolbar(_window, cx))
+    }*/
+    fn render(&mut self, _window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
+        self.render_thread_empty_state(_window, cx)
     }
 }
 

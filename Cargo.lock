@@ -30,45 +30,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "agent-panel-gpui"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "clap",
- "client",
- "clock",
- "db",
- "dialoguer",
- "editor",
- "feature_flags",
- "fs",
- "futures",
- "gpui",
- "gpui_tokio",
- "http_client",
- "icons",
- "indoc",
- "language",
- "libc",
- "log",
- "node_runtime",
- "project",
- "proto",
- "schemars",
- "serde",
- "serde_json",
- "session",
- "settings",
- "simplelog",
- "strum 0.27.2",
- "theme",
- "ui",
- "ui_macros",
- "workspace",
- "zed_actions",
-]
-
-[[package]]
 name = "ahash"
 version = "0.8.12"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -5336,6 +5297,45 @@ name = "notify-types"
 version = "2.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "5e0826a989adedc2a244799e823aece04662b66609d96af8dff7ac6df9a8925d"
+
+[[package]]
+name = "nrepl-panel-gpui"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "clap",
+ "client",
+ "clock",
+ "db",
+ "dialoguer",
+ "editor",
+ "feature_flags",
+ "fs",
+ "futures",
+ "gpui",
+ "gpui_tokio",
+ "http_client",
+ "icons",
+ "indoc",
+ "language",
+ "libc",
+ "log",
+ "node_runtime",
+ "project",
+ "proto",
+ "schemars",
+ "serde",
+ "serde_json",
+ "session",
+ "settings",
+ "simplelog",
+ "strum 0.27.2",
+ "theme",
+ "ui",
+ "ui_macros",
+ "workspace",
+ "zed_actions",
+]
 
 [[package]]
 name = "ntapi"
