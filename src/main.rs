@@ -1,24 +1,36 @@
-mod agent_panel;
-mod message_editor;
-mod thread;
-
-use agent_panel::*;
+use chat_panel::*;
+use chat_window::*;
+use colors::*;
 use gpui::*;
 use std::sync::Arc;
+use text::*;
+pub mod assets;
+pub mod chat_panel;
+pub mod chat_window;
+pub mod message_editor;
+pub mod story;
+pub mod text;
+pub mod thread;
+use project::Project;
+use theme::*;
 
 fn main() {
-    Application::new().run(|app| {
-        settings::init(app);
-        theme::init(theme::LoadThemes::JustBase, app);
-        language::init(app);
-        project::Project::init_settings(app);
-        workspace::init_settings(app);
-        editor::init(app);
-
-        let fs: Arc<dyn project::Fs> = fs::FakeFs::new(app.background_executor().clone());
-        app.open_window(WindowOptions::default(), move |window, cx| {
-            cx.new(|cx| AgentPanel::new(fs.clone(), window, cx))
-        })
-        .unwrap();
+    Application::new().run(move |cx| {
+        settings::init(cx);
+        theme::init(theme::LoadThemes::All(Box::new(assets::Assets)), cx);
+        language::init(cx);
+        editor::init(cx);
+        Project::init_settings(cx);
+        workspace::init_settings(cx);
+        cx.set_global(GlobalColors(Arc::new(Colors::default())));
+        let size = size(px(1300.), px(500.));
+        let bounds = Bounds::centered(None, size, cx);
+        cx.open_window(
+            WindowOptions {
+                window_bounds: Some(WindowBounds::Windowed(bounds)),
+                ..Default::default()
+            },
+            move |window, cx| cx.new(|cx| ChatWindow::new(window, cx)),
+        );
     });
 }
