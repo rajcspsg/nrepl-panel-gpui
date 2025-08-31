@@ -14,7 +14,7 @@ impl ChatWindow {
     pub fn new(window: &mut Window, cx: &mut Context<Self>) -> Self {
         // For demonstration, create a dummy thread and demo messages.
         let thread = cx.new(|_| Thread::new("demo-thread"));
-        let chat_panel = cx.new(|_| ChatPanel::demo());
+        let chat_panel = ChatPanel::new(cx);
         let message_editor = cx.new(|cx| MessageEditor::new(thread, window, cx));
         Self {
             chat_panel,

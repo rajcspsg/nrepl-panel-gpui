@@ -3,7 +3,6 @@ use chat_window::*;
 use colors::*;
 use gpui::*;
 use std::sync::Arc;
-use text::*;
 pub mod assets;
 pub mod chat_panel;
 pub mod chat_window;
@@ -18,8 +17,6 @@ pub mod thread;
 
 use project::Project;
 use state::*;
-use theme::*;
-use themes::*;
 
 fn main() {
     Application::new().run(move |cx| {

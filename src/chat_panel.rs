@@ -1,41 +1,60 @@
+use crate::nrepl_client::NreplRequestResponse;
+use crate::state::*;
 use colors::*;
 use gpui::*;
 
-#[derive(Clone)]
-pub struct ChatMessage {
-    pub author: SharedString,
-    pub content: SharedString,
+pub struct EvaluatedExprList {
+    state: ListState,
 }
 
-impl ChatMessage {
-    pub fn new(author: &str, content: &str) -> Self {
-        Self {
-            author: author.to_owned().into(),
-            content: content.to_owned().into(),
-        }
+impl Render for EvaluatedExprList {
+    fn render(&mut self, _: &mut Window, _cx: &mut Context<Self>) -> impl IntoElement {
+        div()
+            .size_full()
+            .flex()
+            .child(list(self.state.clone()).w_full().h_full())
+    }
+}
+
+impl EvaluatedExprList {
+    pub fn new(app: &mut App) -> Entity<Self> {
+        app.new(|cx| {
+            let state = cx.global::<StateModel>().inner.clone();
+            cx.subscribe(&state, |this: &mut EvaluatedExprList, model, _event, cx| {
+                let items = model.read(cx).items.clone();
+                this.state = ListState::new(
+                    items.len(),
+                    ListAlignment::Bottom,
+                    Pixels(20.),
+                    move |idx, _win, _app| {
+                        let item = items.get(idx).unwrap().clone();
+                        div().child(item).into_any_element()
+                    },
+                );
+                cx.notify();
+            })
+            .detach();
+
+            EvaluatedExprList {
+                state: ListState::new(0, ListAlignment::Bottom, Pixels(20.), move |_, _, _| {
+                    div().into_any_element()
+                }),
+            }
+        })
     }
 }
 
 /// The ChatPanel component, which displays a list of chat messages.
 pub struct ChatPanel {
-    pub messages: Vec<ChatMessage>,
+    pub messages: Entity<EvaluatedExprList>,
 }
 
 impl ChatPanel {
-    pub fn new(messages: Vec<ChatMessage>) -> Self {
-        Self { messages }
-    }
-
-    pub fn demo() -> Self {
-        Self::new(vec![
-            ChatMessage::new("Alice", "Hello, how are you?"),
-            ChatMessage::new("Bob", "I'm good, thanks! How about you?"),
-            ChatMessage::new(
-                "Alice",
-                "Doing well. Ready to start our project discussion.",
-            ),
-            ChatMessage::new("Bob", "Absolutely! Let's get started."),
-        ])
+    pub fn new(app: &mut App) -> Entity<Self> {
+        let list_view = EvaluatedExprList::new(app);
+        app.new(|_| ChatPanel {
+            messages: list_view,
+        })
     }
 }
 
@@ -63,13 +82,13 @@ impl Render for ChatPanel {
                                 div()
                                     .text_sm()
                                     //.text_color(colors.accent)
-                                    .child(msg.author.clone()),
+                                    .child(msg.req.clone()),
                             )
                             .child(
                                 div()
                                     .text_base()
                                     .text_color(colors.text)
-                                    .child(msg.content.clone()),
+                                    .child(msg.resp.clone()),
                             )
                     })
                     .collect::<Vec<_>>(),
