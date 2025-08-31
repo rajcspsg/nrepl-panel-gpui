@@ -1,11 +1,12 @@
+use crate::nrepl_client::*;
+use crate::state::*;
 use crate::thread::*;
 use editor::*;
 use gpui::*;
-use language::{Buffer, Point};
+use language::Buffer;
 use settings::*;
 use std::ops::Range;
 use std::sync::Arc;
-use std::time::Duration;
 use theme::ThemeSettings;
 use ui::*;
 use unicode_segmentation::*;
@@ -301,7 +302,19 @@ impl MessageEditor {
                                             .on_click(cx.listener(|this, _, _window, cx| {
                                                 println!("sent message clicked!!!");
                                                 println!("message is {}", this.get_text(cx));
-                                                //   window.dispatch_action(Box::new(ExpandMessageEditor), cx);
+                                                let input_cmd = this.get_text(cx);
+                                                StateModel::update(
+                                                    |this, cx| {
+                                                        let item = NreplRequest {
+                                                            id: this.inner.clone().read(cx).count,
+                                                            req: input_cmd.into(),
+                                                        };
+                                                        this.push(item, cx);
+                                                    },
+                                                    cx,
+                                                );
+
+                                                this.set_text("", _window, cx);
                                             })),
                                     )
                                 }

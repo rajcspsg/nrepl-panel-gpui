@@ -17,6 +17,7 @@ pub mod themes;
 pub mod thread;
 
 use project::Project;
+use state::*;
 use theme::*;
 use themes::*;
 
@@ -50,7 +51,10 @@ fn main() {
                 window_bounds: Some(WindowBounds::Windowed(bounds)),
                 ..Default::default()
             },
-            move |window, cx| cx.new(|cx| ChatWindow::new(window, cx)),
+            move |window, cx| {
+                StateModel::init(cx, 63900);
+                cx.new(|cx| ChatWindow::new(window, cx))
+            },
         );
     });
 }

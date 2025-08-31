@@ -1,7 +1,6 @@
 use crate::icon::Icon;
 use crate::icon::IconName;
 use crate::state::StateModel;
-use crate::state::*;
 use crate::themes::*;
 
 use gpui::*;
