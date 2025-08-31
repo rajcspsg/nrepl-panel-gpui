@@ -7,12 +7,18 @@ use text::*;
 pub mod assets;
 pub mod chat_panel;
 pub mod chat_window;
+pub mod icon;
 pub mod message_editor;
+pub mod nrepl_client;
+pub mod state;
 pub mod story;
 pub mod text;
+pub mod themes;
 pub mod thread;
+
 use project::Project;
 use theme::*;
+use themes::*;
 
 fn main() {
     Application::new().run(move |cx| {

@@ -1,7 +1,6 @@
 use gpui::*;
-use std::sync::Arc;
 
-use crate::chat_panel::{ChatMessage, ChatPanel};
+use crate::chat_panel::ChatPanel;
 use crate::message_editor::MessageEditor;
 use crate::thread::Thread;
 
@@ -25,7 +24,7 @@ impl ChatWindow {
 }
 
 impl Render for ChatWindow {
-    fn render(&mut self, window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
+    fn render(&mut self, _window: &mut Window, _cx: &mut Context<Self>) -> impl IntoElement {
         // Layout: ChatPanel at the top, MessageEditor at the bottom.
         div().flex().flex_col().size_full().children(vec![
             div().flex_none().child(self.chat_panel.clone()),
