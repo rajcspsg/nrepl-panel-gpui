@@ -22,6 +22,20 @@ use themes::*;
 
 fn main() {
     Application::new().run(move |cx| {
+        cx.bind_keys([
+            KeyBinding::new("backspace", message_editor::Backspace, None),
+            KeyBinding::new("delete", message_editor::Delete, None),
+            KeyBinding::new("left", message_editor::Left, None),
+            KeyBinding::new("right", message_editor::Right, None),
+            KeyBinding::new("shift-left", message_editor::SelectLeft, None),
+            KeyBinding::new("shift-right", message_editor::SelectRight, None),
+            KeyBinding::new("cmd-a", message_editor::SelectAll, None),
+            KeyBinding::new("home", message_editor::Home, None),
+            KeyBinding::new("end", message_editor::End, None),
+            KeyBinding::new("ctrl-cmd-space", message_editor::ShowCharacterPalette, None),
+            //KeyBinding::new("cmd-q", message_editor::Quit, None),
+        ]);
+        cx.activate(true);
         settings::init(cx);
         theme::init(theme::LoadThemes::All(Box::new(assets::Assets)), cx);
         language::init(cx);

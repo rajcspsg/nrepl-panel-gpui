@@ -161,7 +161,13 @@ impl MessageEditor {
     }
 
     fn handle_message_changed(&mut self, cx: &mut Context<Self>) {
-        // self.message_or_context_changed(true, cx);
+        //println!("handle message changed called");
+        self.message_or_context_changed(true, cx);
+    }
+
+    fn message_or_context_changed(&mut self, debounce: bool, cx: &mut Context<Self>) {
+        cx.emit(MessageEditorEvent::Changed);
+        //let editor = self.editor.clone();
     }
 
     fn render_editor(&self, window: &mut Window, cx: &mut Context<Self>) -> Div {
@@ -181,8 +187,7 @@ impl MessageEditor {
             .key_context("MessageEditor")
             .track_focus(&self.focus_handle(cx))
             .cursor(CursorStyle::IBeam)
-            .on_action(cx.listener(Self::backspace))
-            .on_action(cx.listener(Self::delete))
+            // Let the Editor handle backspace and delete natively
             .on_action(cx.listener(Self::left))
             .on_action(cx.listener(Self::right))
             .on_action(cx.listener(Self::select_left))
@@ -245,7 +250,7 @@ impl MessageEditor {
                     })
                     .child({
                         let settings = ThemeSettings::get_global(cx);
-                        let font_size = TextSize::Small
+                        let font_size = TextSize::Default
                             .rems(cx)
                             .to_pixels(settings.agent_font_size(cx));
                         let line_height = settings.buffer_line_height.value() * font_size;
@@ -281,115 +286,37 @@ impl MessageEditor {
                                 h_flex(), // .child(self.render_follow_toggle(is_model_selected, cx))
                                           //  .children(self.render_burn_mode_toggle(cx)),
                             )
-                            .child(
-                                h_flex()
-                                    .gap_1()
-                                    .flex_wrap()
-                                    .when(true, |this| {
-                                        this.child(
-                                            IconButton::new(
-                                                "tools-incompatible-warning",
-                                                IconName::Warning,
-                                            )
-                                            .icon_color(Color::Warning)
-                                            .icon_size(IconSize::Small), /*.tooltip({
-                                                                             move |_, cx| {
-                                                                                 cx.new(|_| IncompatibleToolsTooltip {
-                                                                                     incompatible_tools: incompatible_tools
-                                                                                         .clone(),
-                                                                                 })
-                                                                                 .into()
-                                                                             }
-                                                                         }), */
-                                        )
-                                    })
-                                    .map({
-                                        let focus_handle = focus_handle.clone();
-                                        move |parent| {
-                                            if true {
-                                                parent
-                                                    .when(is_editor_empty, |parent| {
-                                                        parent.child(
-                                                            IconButton::new(
-                                                                "stop-generation",
-                                                                IconName::StopFilled,
-                                                            )
-                                                            .icon_color(Color::Error)
-                                                            .style(ButtonStyle::Tinted(
-                                                                ui::TintColor::Error,
-                                                            ))
-                                                            .tooltip(move |window, cx| {
-                                                                Tooltip::for_action(
-                                                                    "Stop Generation",
-                                                                    &editor::actions::Cancel,
-                                                                    window,
-                                                                    cx,
-                                                                )
-                                                            })
-                                                            .on_click({
-                                                                let focus_handle =
-                                                                    focus_handle.clone();
-                                                                move |_event, window, cx| {
-                                                                    focus_handle.dispatch_action(
-                                                                        &editor::actions::Cancel,
-                                                                        window,
-                                                                        cx,
-                                                                    );
-                                                                }
-                                                            })
-                                                            .with_animation(
-                                                                "pulsating-label",
-                                                                Animation::new(
-                                                                    Duration::from_secs(2),
-                                                                )
-                                                                .repeat()
-                                                                .with_easing(pulsating_between(
-                                                                    0.4, 1.0,
-                                                                )),
-                                                                |icon_button, delta| {
-                                                                    icon_button.alpha(delta)
-                                                                },
-                                                            ),
-                                                        )
-                                                    })
-                                                    .when(!is_editor_empty, |parent| {
-                                                        parent.child(
-                                                            IconButton::new(
-                                                                "send-message",
-                                                                IconName::Send,
-                                                            )
-                                                            .icon_color(Color::Accent)
-                                                            .style(ButtonStyle::Filled),
-                                                        )
-                                                    })
-                                            } else {
-                                                parent.child(
-                                                    IconButton::new("send-message", IconName::Send)
-                                                        .icon_color(Color::Accent)
-                                                        .style(ButtonStyle::Filled)
-                                                        .when(is_editor_empty, |button| {
-                                                            button.tooltip(Tooltip::text(
-                                                                "Type a message to submit",
-                                                            ))
-                                                        })
-                                                        .when(!true, |button| {
-                                                            button.tooltip(Tooltip::text(
-                                                                "Select a model to continue",
-                                                            ))
-                                                        }),
-                                                )
-                                            }
-                                        }
-                                    }),
-                            ),
+                            .child(h_flex().gap_1().flex_wrap().map({
+                                let focus_handle = focus_handle.clone();
+                                move |parent| {
+                                    parent.child(
+                                        IconButton::new("send-message", IconName::Send)
+                                            .icon_color(Color::Accent)
+                                            .style(ButtonStyle::Filled)
+                                            .when(is_editor_empty, |button| {
+                                                button.tooltip(Tooltip::text(
+                                                    "Type a message to submit",
+                                                ))
+                                            })
+                                            .on_click(cx.listener(|this, _, _window, cx| {
+                                                println!("sent message clicked!!!");
+                                                println!("message is {}", this.get_text(cx));
+                                                //   window.dispatch_action(Box::new(ExpandMessageEditor), cx);
+                                            })),
+                                    )
+                                }
+                            })),
                     ),
             )
     }
 
     fn left(&mut self, _: &Left, _: &mut Window, cx: &mut Context<Self>) {
+        //println!("left action is invoked");
         if self.selected_range.is_empty() {
+            //println!("inside selected range empty");
             self.move_to(self.previous_boundary(self.cursor_offset()), cx);
         } else {
+            //println!("inside selected range non-empty");
             self.move_to(self.selected_range.start, cx)
         }
     }
@@ -423,19 +350,7 @@ impl MessageEditor {
         self.move_to(self.content.len(), cx);
     }
 
-    fn backspace(&mut self, _: &Backspace, window: &mut Window, cx: &mut Context<Self>) {
-        if self.selected_range.is_empty() {
-            self.select_to(self.previous_boundary(self.cursor_offset()), cx)
-        }
-        self.replace_text_in_range(None, "", window, cx)
-    }
-
-    fn delete(&mut self, _: &Delete, window: &mut Window, cx: &mut Context<Self>) {
-        if self.selected_range.is_empty() {
-            self.select_to(self.next_boundary(self.cursor_offset()), cx)
-        }
-        self.replace_text_in_range(None, "", window, cx)
-    }
+    // Removed custom backspace and delete handlers; Editor will handle these actions.
 
     fn on_mouse_down(
         &mut self,
@@ -494,6 +409,7 @@ impl MessageEditor {
     }
 
     fn move_to(&mut self, offset: usize, cx: &mut Context<Self>) {
+        //println!("move_to offset: {}", offset);
         self.selected_range = offset..offset;
         cx.notify()
     }
@@ -576,11 +492,14 @@ impl MessageEditor {
     }
 
     fn previous_boundary(&self, offset: usize) -> usize {
-        self.content
+        let result = self
+            .content
             .grapheme_indices(true)
             .rev()
             .find_map(|(idx, _)| (idx < offset).then_some(idx))
-            .unwrap_or(0)
+            .unwrap_or(0);
+        println!("previous_boundary result: {}, offset: {}", result, offset);
+        return result;
     }
 
     fn next_boundary(&self, offset: usize) -> usize {
@@ -727,7 +646,6 @@ impl EntityInputHandler for MessageEditor {
 }
 
 pub enum MessageEditorEvent {
-    EstimatedTokenCount,
     Changed,
     ScrollThreadToBottom,
 }
