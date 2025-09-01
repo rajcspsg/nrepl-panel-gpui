@@ -59,16 +59,19 @@ impl ChatPanel {
 }
 
 impl Render for ChatPanel {
-    fn render(&mut self, _window: &mut Window, _cx: &mut Context<Self>) -> impl IntoElement {
+    fn render(&mut self, _window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
         // Panel container
         let colors = Colors::default();
+        let state = cx.global::<StateModel>();
+        let items = state.inner.read(cx).items.clone();
+
         div()
             .flex()
             .flex_col()
             .size_full()
             .bg(colors.background)
             .children(
-                self.messages
+                items
                     .iter()
                     .map(|msg| {
                         div()
