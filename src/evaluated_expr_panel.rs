@@ -1,4 +1,4 @@
-use crate::state::*;
+use crate::{nrepl_client::NreplRequestResponse, state::*};
 use colors::*;
 use gpui::*;
 
@@ -20,13 +20,13 @@ impl EvaluatedExprList {
         app.new(|cx| {
             let state = cx.global::<StateModel>().inner.clone();
             cx.subscribe(&state, |this: &mut EvaluatedExprList, model, _event, cx| {
-                let items = model.read(cx).items.clone();
+                let items: Vec[NreplRequestResponse] = model.read(cx).items.clone();
                 this.state = ListState::new(
                     items.len(),
                     ListAlignment::Bottom,
                     Pixels(20.),
                     move |idx, _win, _app| {
-                        let item = items.get(idx).unwrap().clone();
+                        let item: NreplRequestResponse = items.get(idx).unwrap().clone();
                         div().child(item).into_any_element()
                     },
                 );

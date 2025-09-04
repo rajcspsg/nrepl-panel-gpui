@@ -49,9 +49,6 @@ impl StateModel {
 
     pub fn push(&self, item: NreplRequest, cx: &mut App) {
         self.inner.update(cx, |model, cx| {
-            // let nrepl = Nrepl::global(cx);
-            // let client = &nrepl.client;
-            //let eval_result = client.eval("(+ 1 2 3)");
             self.client.update(cx, |client, _| {
                 let result = client.eval(item.req.trim());
                 match result {

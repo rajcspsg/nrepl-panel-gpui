@@ -1,6 +1,3 @@
-use crate::icon::Icon;
-use crate::icon::IconName;
-use crate::state::StateModel;
 use crate::themes::*;
 
 use gpui::*;
@@ -9,48 +6,10 @@ use std::io::{ErrorKind, Read, Write};
 use std::net::TcpStream;
 use std::time::{Duration, Instant};
 
-#[derive(Clone, Debug, IntoElement)]
+#[derive(Clone, Debug)]
 pub struct NreplRequest {
     pub id: usize,
     pub req: gpui::SharedString,
-}
-
-impl NreplRequest {
-    fn delete(self: &mut Self, app: &mut App) {
-        StateModel::update(
-            |state, app| {
-                state.remove(self.id, app);
-            },
-            app,
-        );
-    }
-}
-
-impl RenderOnce for NreplRequest {
-    fn render(self, _: &mut Window, app: &mut App) -> impl IntoElement {
-        div()
-            .flex()
-            .justify_between()
-            .items_center()
-            .py_2()
-            .px_4()
-            .border_t_1()
-            .text_xl()
-            .child(self.req.clone())
-            .child(
-                div()
-                    .flex()
-                    .border_1()
-                    .pl_2()
-                    .pb_2()
-                    .pt_2()
-                    .pr_1()
-                    .items_center()
-                    .justify_center()
-                    .child(Icon::new(IconName::Trash))
-                    .on_mouse_down(MouseButton::Left, move |_, _, app| self.clone().delete(app)),
-            )
-    }
 }
 
 #[derive(Clone, Debug, IntoElement)]
@@ -88,9 +47,6 @@ pub struct NreplClient {
 
 impl Clone for NreplClient {
     fn clone(&self) -> Self {
-        // Reconnect to the same host/port, session will be reset
-        //let client = NreplClient::connect("127.0.0.1", self.port)
-        //    .expect("Failed to clone NreplClient: could not reconnect");
         let tcp_stream = match self.stream.try_clone() {
             Ok(stream) => stream,
             Err(_) => TcpStream::connect(format!("127.0.0.1:{}", self.port))
