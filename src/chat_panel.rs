@@ -1,4 +1,3 @@
-use crate::nrepl_client::NreplRequestResponse;
 use crate::state::*;
 use colors::*;
 use gpui::*;

@@ -42,7 +42,7 @@ pub fn create_editor(
             window,
             cx,
         );
-        editor.set_placeholder_text("Message the agent – @ to include context", cx);
+        editor.set_placeholder_text("Send clojure s-expressions to NRepl Server", cx);
         editor.set_show_indent_guides(false, cx);
         editor.set_soft_wrap();
         editor.set_use_modal_editing(true);
@@ -62,10 +62,21 @@ pub fn create_editor(
 impl MessageEditor {
     pub fn new(thread: Entity<Thread>, window: &mut Window, cx: &mut Context<Self>) -> Self {
         let editor = create_editor(MIN_EDITOR_LINES, Some(MAX_EDITOR_LINES), window, cx);
+        //println!("MessageEditor: Created editor entity");
+
+        // Force focus on the editor immediately
+        let focus_handle = editor.focus_handle(cx);
+        focus_handle.focus(window);
+        //println!("MessageEditor: Forced focus on editor during creation");
 
         let subscriptions = vec![cx.subscribe(&editor, |this, _, event, cx| match event {
-            EditorEvent::BufferEdited => this.handle_message_changed(cx),
-            _ => {}
+            EditorEvent::BufferEdited => {
+                //println!("MessageEditor: Buffer edited event received");
+                this.handle_message_changed(cx);
+            }
+            _ => {
+                //println!("MessageEditor: Other editor event: {:?}", event);
+            }
         })];
 
         //let project = thread.read(cx).project().clone();
@@ -130,6 +141,7 @@ impl MessageEditor {
 
     fn handle_message_changed(&mut self, cx: &mut Context<Self>) {
         //println!("handle message changed called");
+        //println!("Current editor text: '{}'", self.get_text(cx));
         self.message_or_context_changed(true, cx);
     }
 
@@ -152,6 +164,17 @@ impl MessageEditor {
         };
 
         v_flex()
+            .key_context("MessageEditor")
+            .track_focus(&focus_handle)
+            .on_key_down(cx.listener(|_this, event: &KeyDownEvent, _window, cx| {
+                // println!("MessageEditor: Key down event: {:?}", event.keystroke);
+                cx.propagate();
+            }))
+            .on_key_up(cx.listener(|_this, event: &KeyUpEvent, _window, cx| {
+                //println!("MessageEditor: Key up event: {:?}", event.keystroke);
+                cx.propagate();
+            }))
+            // Key handlers removed due to Key enum limitations - debugging focus instead
             //.bg(themes::Theme.mantle)
             .p_2()
             .gap_2()
@@ -214,17 +237,19 @@ impl MessageEditor {
                             ..Default::default()
                         };
 
-                        EditorElement::new(
-                            &self.editor,
-                            EditorStyle {
-                                background: editor_bg_color,
-                                local_player: cx.theme().players().local(),
-                                text: text_style,
-                                syntax: cx.theme().syntax().clone(),
-                                ..Default::default()
-                            },
-                        )
-                        .into_any()
+                        {
+                            EditorElement::new(
+                                &self.editor,
+                                EditorStyle {
+                                    background: editor_bg_color,
+                                    local_player: cx.theme().players().local(),
+                                    text: text_style,
+                                    syntax: cx.theme().syntax().clone(),
+                                    ..Default::default()
+                                },
+                            )
+                            .into_any()
+                        }
                     })
                     .child(
                         h_flex()
@@ -248,8 +273,6 @@ impl MessageEditor {
                                                 ))
                                             })
                                             .on_click(cx.listener(|this, _, _window, cx| {
-                                                println!("sent message clicked!!!");
-                                                println!("message is {}", this.get_text(cx));
                                                 let input_cmd = this.get_text(cx);
                                                 StateModel::update(
                                                     |this, cx| {
@@ -285,6 +308,7 @@ pub enum MessageEditorEvent {
 
 impl Focusable for MessageEditor {
     fn focus_handle(&self, cx: &App) -> gpui::FocusHandle {
+        //println!("MessageEditor: focus_handle requested");
         self.editor.focus_handle(cx)
     }
 }
@@ -292,6 +316,11 @@ impl Focusable for MessageEditor {
 impl Render for MessageEditor {
     fn render(&mut self, window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
         let line_height = TextSize::Small.rems(cx).to_pixels(window.rem_size()) * 1.5;
+        let focus_handle = self.editor.focus_handle(cx);
+
+        // Check current key context
+        let mut key_context = KeyContext::default();
+        key_context.add("MessageEditor");
 
         v_flex()
             .size_full()

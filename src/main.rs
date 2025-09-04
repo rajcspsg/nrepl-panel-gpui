@@ -1,4 +1,3 @@
-use chat_panel::*;
 use chat_window::*;
 use colors::*;
 use gpui::*;
@@ -17,6 +16,7 @@ pub mod thread;
 
 use project::Project;
 use state::*;
+use std::env;
 
 fn main() {
     Application::new().run(move |cx| {
@@ -43,13 +43,19 @@ fn main() {
         cx.set_global(GlobalColors(Arc::new(Colors::default())));
         let size = size(px(1300.), px(500.));
         let bounds = Bounds::centered(None, size, cx);
+        let args: Vec<String> = env::args().collect();
+        let port: u16 = args[1]
+            .clone()
+            .to_string()
+            .parse()
+            .expect("Failed to parse port to u16");
         cx.open_window(
             WindowOptions {
                 window_bounds: Some(WindowBounds::Windowed(bounds)),
                 ..Default::default()
             },
             move |window, cx| {
-                StateModel::init(cx, 63900);
+                StateModel::init(cx, port);
                 cx.new(|cx| ChatWindow::new(window, cx))
             },
         );

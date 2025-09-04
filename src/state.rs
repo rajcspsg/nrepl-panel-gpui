@@ -26,7 +26,7 @@ impl StateModel {
             Err(e) => {
                 println!("Failed to connect: {}", e);
                 panic!(
-                    "Make sure nREPL server is running with: lein repl :headless :host 127.0.0.1 :port 63067"
+                    "Make sure nREPL server is running with: lein repl :headless :host 127.0.0.1 :port {}", port
                 );
             }
         });
