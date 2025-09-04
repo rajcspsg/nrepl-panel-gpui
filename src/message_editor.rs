@@ -5,17 +5,13 @@ use editor::*;
 use gpui::*;
 use language::Buffer;
 use settings::*;
-use std::ops::Range;
 use std::sync::Arc;
 use theme::ThemeSettings;
 use ui::*;
-use unicode_segmentation::*;
 use workspace::*;
 
 pub const MIN_EDITOR_LINES: usize = 4;
 pub const MAX_EDITOR_LINES: usize = 8;
-
-// Actions removed - Editor handles all text operations natively
 
 pub struct MessageEditor {
     pub editor: Entity<Editor>,
@@ -23,12 +19,7 @@ pub struct MessageEditor {
     pub _subscriptions: Vec<gpui::Subscription>,
 }
 
-pub fn create_editor(
-    min_lines: usize,
-    max_lines: Option<usize>,
-    window: &mut Window,
-    cx: &mut App,
-) -> Entity<Editor> {
+pub fn create_editor(window: &mut Window, cx: &mut App) -> Entity<Editor> {
     let editor = cx.new(|cx| {
         let buffer = cx.new(|cx| Buffer::local("", cx));
         let buffer = cx.new(|cx| MultiBuffer::singleton(buffer, cx));
@@ -60,26 +51,17 @@ pub fn create_editor(
 }
 
 impl MessageEditor {
-    pub fn new(thread: Entity<Thread>, window: &mut Window, cx: &mut Context<Self>) -> Self {
-        let editor = create_editor(MIN_EDITOR_LINES, Some(MAX_EDITOR_LINES), window, cx);
-        //println!("MessageEditor: Created editor entity");
-
-        // Force focus on the editor immediately
+    pub fn new(window: &mut Window, cx: &mut Context<Self>) -> Self {
+        let editor = create_editor(window, cx);
         let focus_handle = editor.focus_handle(cx);
         focus_handle.focus(window);
-        //println!("MessageEditor: Forced focus on editor during creation");
 
         let subscriptions = vec![cx.subscribe(&editor, |this, _, event, cx| match event {
             EditorEvent::BufferEdited => {
-                //println!("MessageEditor: Buffer edited event received");
                 this.handle_message_changed(cx);
             }
-            _ => {
-                //println!("MessageEditor: Other editor event: {:?}", event);
-            }
+            _ => {}
         })];
-
-        //let project = thread.read(cx).project().clone();
 
         Self {
             editor: editor.clone(),
@@ -103,12 +85,7 @@ impl MessageEditor {
         });
     }
 
-    pub fn expand_message_editor(
-        &mut self,
-        // _: &ExpandMessageEditor,
-        _window: &mut Window,
-        cx: &mut Context<Self>,
-    ) {
+    pub fn expand_message_editor(&mut self, _window: &mut Window, cx: &mut Context<Self>) {
         self.set_editor_is_expanded(!self.editor_is_expanded, cx);
     }
 
@@ -147,7 +124,6 @@ impl MessageEditor {
 
     fn message_or_context_changed(&mut self, debounce: bool, cx: &mut Context<Self>) {
         cx.emit(MessageEditorEvent::Changed);
-        //let editor = self.editor.clone();
     }
 
     fn render_editor(&self, window: &mut Window, cx: &mut Context<Self>) -> Div {

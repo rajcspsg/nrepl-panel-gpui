@@ -43,7 +43,6 @@ impl EvaluatedExprList {
     }
 }
 
-/// The ChatPanel component, which displays a list of chat messages.
 pub struct ChatPanel {
     pub messages: Entity<EvaluatedExprList>,
 }
@@ -59,7 +58,6 @@ impl ChatPanel {
 
 impl Render for ChatPanel {
     fn render(&mut self, _window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
-        // Panel container
         let colors = Colors::default();
         let state = cx.global::<StateModel>();
         let items = state.inner.read(cx).items.clone();
@@ -83,7 +81,7 @@ impl Render for ChatPanel {
                             .child(
                                 div()
                                     .text_sm()
-                                    //.text_color(colors.accent)
+                                    //.text_color(colors::accent)
                                     .child(msg.req.clone()),
                             )
                             .child(

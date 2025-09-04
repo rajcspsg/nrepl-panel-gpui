@@ -9,8 +9,6 @@ pub mod icon;
 pub mod message_editor;
 pub mod nrepl_client;
 pub mod state;
-pub mod story;
-pub mod text;
 pub mod themes;
 pub mod thread;
 
