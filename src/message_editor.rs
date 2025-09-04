@@ -1,6 +1,5 @@
 use crate::nrepl_client::*;
 use crate::state::*;
-use crate::thread::*;
 use editor::*;
 use gpui::*;
 use language::Buffer;
@@ -117,8 +116,6 @@ impl MessageEditor {
     }
 
     fn handle_message_changed(&mut self, cx: &mut Context<Self>) {
-        //println!("handle message changed called");
-        //println!("Current editor text: '{}'", self.get_text(cx));
         self.message_or_context_changed(true, cx);
     }
 
@@ -143,52 +140,17 @@ impl MessageEditor {
             .key_context("MessageEditor")
             .track_focus(&focus_handle)
             .on_key_down(cx.listener(|_this, event: &KeyDownEvent, _window, cx| {
-                // println!("MessageEditor: Key down event: {:?}", event.keystroke);
                 cx.propagate();
             }))
             .on_key_up(cx.listener(|_this, event: &KeyUpEvent, _window, cx| {
-                //println!("MessageEditor: Key up event: {:?}", event.keystroke);
                 cx.propagate();
             }))
-            // Key handlers removed due to Key enum limitations - debugging focus instead
-            //.bg(themes::Theme.mantle)
             .p_2()
             .gap_2()
             .border_t_1()
             .border_color(cx.theme().colors().border)
             .bg(editor_bg_color)
-            .child(
-                h_flex()
-                    .justify_between()
-                    //.child(self.context_strip.clone())
-                    .when(focus_handle.is_focused(window), |this| {
-                        this.child(
-                            IconButton::new("toggle-height", expand_icon)
-                                .icon_size(IconSize::XSmall)
-                                .icon_color(Color::Muted)
-                                /*.tooltip({
-                                    let focus_handle = focus_handle.clone();
-                                    move |window, cx| {
-                                        let expand_label = if is_editor_expanded {
-                                            "Minimize Message Editor".to_string()
-                                        } else {
-                                            "Expand Message Editor".to_string()
-                                        };
-                                        //Tooltip::for_action_in(
-                                        //    expand_label,
-                                        //    &ExpandMessageEditor,
-                                        //    &focus_handle,
-                                        //    window,
-                                        //    cx,
-                                        //)
-                                    }
-                                }) */
-                                .on_click(cx.listener(|_, _, window, cx| {
-                                    //   window.dispatch_action(Box::new(ExpandMessageEditor), cx);
-                                })),
-                        )
-                    }),
-            )
+            .child(h_flex().justify_between())
             .child(
                 v_flex()
                     .size_full()
@@ -232,10 +194,7 @@ impl MessageEditor {
                             .flex_none()
                             .flex_wrap()
                             .justify_between()
-                            .child(
-                                h_flex(), // .child(self.render_follow_toggle(is_model_selected, cx))
-                                          //  .children(self.render_burn_mode_toggle(cx)),
-                            )
+                            .child(h_flex())
                             .child(h_flex().gap_1().flex_wrap().map({
                                 let focus_handle = focus_handle.clone();
                                 move |parent| {
@@ -269,13 +228,9 @@ impl MessageEditor {
                     ),
             )
     }
-
-    // All text operations are now handled by the Editor component
 }
 
 impl EventEmitter<MessageEditorEvent> for MessageEditor {}
-
-// EntityInputHandler removed - Editor handles all text input natively
 
 pub enum MessageEditorEvent {
     Changed,
@@ -284,17 +239,12 @@ pub enum MessageEditorEvent {
 
 impl Focusable for MessageEditor {
     fn focus_handle(&self, cx: &App) -> gpui::FocusHandle {
-        //println!("MessageEditor: focus_handle requested");
         self.editor.focus_handle(cx)
     }
 }
 
 impl Render for MessageEditor {
     fn render(&mut self, window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
-        let line_height = TextSize::Small.rems(cx).to_pixels(window.rem_size()) * 1.5;
-        let focus_handle = self.editor.focus_handle(cx);
-
-        // Check current key context
         let mut key_context = KeyContext::default();
         key_context.add("MessageEditor");
 

@@ -1,13 +1,13 @@
-use chat_window::*;
 use colors::*;
 use gpui::*;
+use nrepl_window::*;
 use std::sync::Arc;
 pub mod assets;
 pub mod chat_panel;
-pub mod chat_window;
 pub mod icon;
 pub mod message_editor;
 pub mod nrepl_client;
+pub mod nrepl_window;
 pub mod state;
 pub mod themes;
 pub mod thread;
@@ -47,14 +47,14 @@ fn main() {
             .to_string()
             .parse()
             .expect("Failed to parse port to u16");
-        cx.open_window(
+        let _ = cx.open_window(
             WindowOptions {
                 window_bounds: Some(WindowBounds::Windowed(bounds)),
                 ..Default::default()
             },
             move |window, cx| {
                 StateModel::init(cx, port);
-                cx.new(|cx| ChatWindow::new(window, cx))
+                cx.new(|cx| NReplWindow::new(window, cx))
             },
         );
     });

@@ -1,5 +1,4 @@
 use gpui::*;
-use project::*;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
