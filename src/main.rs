@@ -3,7 +3,7 @@ use gpui::*;
 use nrepl_window::*;
 use std::sync::Arc;
 pub mod assets;
-pub mod chat_panel;
+pub mod evaluated_expr_panel;
 pub mod icon;
 pub mod message_editor;
 pub mod nrepl_client;

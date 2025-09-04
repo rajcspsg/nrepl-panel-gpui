@@ -43,20 +43,20 @@ impl EvaluatedExprList {
     }
 }
 
-pub struct ChatPanel {
+pub struct EvaluatedExprListPanel {
     pub messages: Entity<EvaluatedExprList>,
 }
 
-impl ChatPanel {
+impl EvaluatedExprListPanel {
     pub fn new(app: &mut App) -> Entity<Self> {
         let list_view = EvaluatedExprList::new(app);
-        app.new(|_| ChatPanel {
+        app.new(|_| EvaluatedExprListPanel {
             messages: list_view,
         })
     }
 }
 
-impl Render for ChatPanel {
+impl Render for EvaluatedExprListPanel {
     fn render(&mut self, _window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
         let colors = Colors::default();
         let state = cx.global::<StateModel>();

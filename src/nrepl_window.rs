@@ -1,16 +1,16 @@
 use gpui::*;
 
-use crate::chat_panel::ChatPanel;
+use crate::evaluated_expr_panel::EvaluatedExprListPanel;
 use crate::message_editor::MessageEditor;
 
 pub struct NReplWindow {
-    chat_panel: Entity<ChatPanel>,
+    chat_panel: Entity<EvaluatedExprListPanel>,
     message_editor: Entity<MessageEditor>,
 }
 
 impl NReplWindow {
     pub fn new(window: &mut Window, cx: &mut Context<Self>) -> Self {
-        let chat_panel = ChatPanel::new(cx);
+        let chat_panel = EvaluatedExprListPanel::new(cx);
         let message_editor = cx.new(|cx| MessageEditor::new(window, cx));
         Self {
             chat_panel,

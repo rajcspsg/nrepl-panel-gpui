@@ -28,7 +28,6 @@ impl NreplRequest {
 
 impl RenderOnce for NreplRequest {
     fn render(self, _: &mut Window, app: &mut App) -> impl IntoElement {
-        //let theme = app.global::<Theme>();
         div()
             .flex()
             .justify_between()
@@ -36,8 +35,6 @@ impl RenderOnce for NreplRequest {
             .py_2()
             .px_4()
             .border_t_1()
-            //.border_color(theme.crust_light)
-            //.hover(|s| s.bg(theme.base_blur))
             .text_xl()
             .child(self.req.clone())
             .child(
