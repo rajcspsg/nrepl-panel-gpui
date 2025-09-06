@@ -1,4 +1,3 @@
-use crate::nrepl_client::*;
 use crate::state::*;
 use editor::*;
 use gpui::*;
@@ -130,19 +129,14 @@ impl MessageEditor {
         let is_editor_empty = self.is_editor_empty(cx);
 
         let is_editor_expanded = self.editor_is_expanded;
-        let expand_icon = if is_editor_expanded {
-            IconName::Minimize
-        } else {
-            IconName::Maximize
-        };
 
         v_flex()
             .key_context("MessageEditor")
             .track_focus(&focus_handle)
-            .on_key_down(cx.listener(|_this, event: &KeyDownEvent, _window, cx| {
+            .on_key_down(cx.listener(|_this, _event: &KeyDownEvent, _window, cx| {
                 cx.propagate();
             }))
-            .on_key_up(cx.listener(|_this, event: &KeyUpEvent, _window, cx| {
+            .on_key_up(cx.listener(|_this, _event: &KeyUpEvent, _window, cx| {
                 cx.propagate();
             }))
             .p_2()
@@ -196,7 +190,7 @@ impl MessageEditor {
                             .justify_between()
                             .child(h_flex())
                             .child(h_flex().gap_1().flex_wrap().map({
-                                let focus_handle = focus_handle.clone();
+                                let _focus_handle = focus_handle.clone();
                                 move |parent| {
                                     parent.child(
                                         IconButton::new("send-message", IconName::Send)

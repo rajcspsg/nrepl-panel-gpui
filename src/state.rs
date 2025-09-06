@@ -2,6 +2,64 @@ use gpui::*;
 
 use crate::nrepl_client::*;
 
+#[derive(Debug, Clone)]
+pub struct NReplResult {
+    pub value: SharedString,
+    pub output: SharedString,
+    pub error: SharedString,
+    pub has_error: bool,
+}
+
+pub fn create_ui_eval_result(input: EvalResult) -> NReplResult {
+    match input {
+        EvalResult {
+            value,
+            output,
+            error,
+            has_error,
+        } => {
+            let new_value: SharedString = value.map(|x| x.into()).expect("nil".into());
+            let new_output: SharedString = output.into();
+            let new_error: SharedString = error.into();
+            NReplResult {
+                value: new_value,
+                output: new_output,
+                error: new_error,
+                has_error: has_error,
+            }
+        }
+    }
+}
+
+#[derive(Clone, Debug)]
+pub struct NreplRequest {
+    pub id: usize,
+    pub req: gpui::SharedString,
+}
+
+#[derive(Clone, Debug, IntoElement)]
+pub struct NreplRequestResponse {
+    pub id: usize,
+    pub req: SharedString,
+    pub resp: NReplResult,
+}
+
+impl RenderOnce for NreplRequestResponse {
+    fn render(self, _: &mut Window, _app: &mut App) -> impl IntoElement {
+        div()
+            .flex()
+            .justify_between()
+            .items_center()
+            .py_2()
+            .px_4()
+            .border_t_1()
+            //.border_color(themes.crust_light)
+            //.hover(|s| s.bg(themes.base_blur))
+            .text_xl()
+            .children([self.req.clone(), self.resp.output.clone()])
+    }
+}
+
 #[derive(Clone)]
 pub struct State {
     pub count: usize, // hack for generating req-resp item ids
@@ -21,7 +79,7 @@ impl StateModel {
             items: vec![],
         });
 
-        let mut client = app.new(|_cx| match NreplClient::connect("127.0.0.1", port) {
+        let  client = app.new(|_cx| match NreplClient::connect("127.0.0.1", port) {
             Ok(c) => c,
             Err(e) => {
                 println!("Failed to connect: {}", e);
@@ -53,23 +111,18 @@ impl StateModel {
                 let result = client.eval(item.req.trim());
                 match result {
                     Ok(v) => {
-                        if let Some(value) = &v.value {
-                            println!("  Value: {}", value);
-                            let repl_entry = NreplRequestResponse {
-                                id: item.id,
-                                req: item.req,
-                                resp: value.into(),
-                            };
-                            model.items.push(repl_entry);
-                        }
-                        if !v.output.is_empty() {
-                            println!("  Output: '{}'", v.output);
-                        }
+                        let repl_entry = NreplRequestResponse {
+                            id: item.id,
+                            req: item.req,
+                            resp: create_ui_eval_result(v.clone()),
+                        };
+                        println!("output: \n");
+                        println!("{}", v.output);
+                        model.items.push(repl_entry);
                     }
                     Err(e) => println!("error occured {}", e),
                 }
             });
-            //println!();
             model.count += 1;
             cx.emit(ListChangedEvent {});
         });

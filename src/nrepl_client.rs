@@ -1,40 +1,8 @@
-use crate::themes::*;
-
-use gpui::*;
+use serde_bencode::value::Value;
 use std::collections::HashMap;
 use std::io::{ErrorKind, Read, Write};
 use std::net::TcpStream;
 use std::time::{Duration, Instant};
-
-#[derive(Clone, Debug)]
-pub struct NreplRequest {
-    pub id: usize,
-    pub req: gpui::SharedString,
-}
-
-#[derive(Clone, Debug, IntoElement)]
-pub struct NreplRequestResponse {
-    pub id: usize,
-    pub req: SharedString,
-    pub resp: SharedString,
-}
-
-impl RenderOnce for NreplRequestResponse {
-    fn render(self, _: &mut Window, app: &mut App) -> impl IntoElement {
-        let theme = app.global::<Theme>();
-        div()
-            .flex()
-            .justify_between()
-            .items_center()
-            .py_2()
-            .px_4()
-            .border_t_1()
-            //.border_color(themes.crust_light)
-            //.hover(|s| s.bg(themes.base_blur))
-            .text_xl()
-            .children([self.req.clone(), self.resp.clone()])
-    }
-}
 
 #[derive(Debug)]
 pub struct NreplClient {
@@ -63,7 +31,7 @@ impl Clone for NreplClient {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct EvalResult {
     pub value: Option<String>,
     pub output: String,
@@ -163,20 +131,17 @@ impl NreplClient {
 
     pub fn clone_session(&mut self) -> Result<String, NreplError> {
         let mut msg = HashMap::new();
-        msg.insert(
-            "op".to_string(),
-            serde_bencode::value::Value::Bytes(b"clone".to_vec()),
-        );
+        msg.insert("op".to_string(), Value::Bytes(b"clone".to_vec()));
         msg.insert(
             "id".to_string(),
-            serde_bencode::value::Value::Bytes(uuid::Uuid::new_v4().to_string().into_bytes()),
+            Value::Bytes(uuid::Uuid::new_v4().to_string().into_bytes()),
         );
 
         self.send_message(&msg)?;
         let response = self.read_message_with_timeout()?;
 
         if let Some(new_session) = response.get("new-session") {
-            if let serde_bencode::value::Value::Bytes(session_bytes) = new_session {
+            if let Value::Bytes(session_bytes) = new_session {
                 let session_id = String::from_utf8_lossy(session_bytes).to_string();
                 self.session = Some(session_id.clone());
                 return Ok(session_id);
@@ -204,23 +169,14 @@ impl NreplClient {
 
         let mut msg = HashMap::new();
         let eval_id = uuid::Uuid::new_v4().to_string();
-        msg.insert(
-            "op".to_string(),
-            serde_bencode::value::Value::Bytes(b"eval".to_vec()),
-        );
-        msg.insert(
-            "id".to_string(),
-            serde_bencode::value::Value::Bytes(eval_id.clone().into_bytes()),
-        );
-        msg.insert(
-            "code".to_string(),
-            serde_bencode::value::Value::Bytes(code.as_bytes().to_vec()),
-        );
+        msg.insert("op".to_string(), Value::Bytes(b"eval".to_vec()));
+        msg.insert("id".to_string(), Value::Bytes(eval_id.clone().into_bytes()));
+        msg.insert("code".to_string(), Value::Bytes(code.as_bytes().to_vec()));
 
         if let Some(session) = &self.session {
             msg.insert(
                 "session".to_string(),
-                serde_bencode::value::Value::Bytes(session.as_bytes().to_vec()),
+                Value::Bytes(session.as_bytes().to_vec()),
             );
         }
 
@@ -244,7 +200,7 @@ impl NreplClient {
             };
 
             // Verify this response is for our request
-            if let Some(serde_bencode::value::Value::Bytes(id_bytes)) = response.get("id") {
+            if let Some(Value::Bytes(id_bytes)) = response.get("id") {
                 let response_id = String::from_utf8_lossy(id_bytes);
                 if response_id != eval_id {
                     continue; // Skip responses for other requests
@@ -252,25 +208,25 @@ impl NreplClient {
             }
 
             // Extract value
-            if let Some(serde_bencode::value::Value::Bytes(value_bytes)) = response.get("value") {
+            if let Some(Value::Bytes(value_bytes)) = response.get("value") {
                 result.value = Some(String::from_utf8_lossy(value_bytes).to_string());
             }
 
             // Extract stdout
-            if let Some(serde_bencode::value::Value::Bytes(out_bytes)) = response.get("out") {
+            if let Some(Value::Bytes(out_bytes)) = response.get("out") {
                 result.output.push_str(&String::from_utf8_lossy(out_bytes));
             }
 
             // Extract stderr
-            if let Some(serde_bencode::value::Value::Bytes(err_bytes)) = response.get("err") {
+            if let Some(Value::Bytes(err_bytes)) = response.get("err") {
                 result.error.push_str(&String::from_utf8_lossy(err_bytes));
             }
 
             // Check status
-            if let Some(serde_bencode::value::Value::List(status_list)) = response.get("status") {
+            if let Some(Value::List(status_list)) = response.get("status") {
                 let mut is_done = false;
                 for status_item in status_list {
-                    if let serde_bencode::value::Value::Bytes(status_bytes) = status_item {
+                    if let Value::Bytes(status_bytes) = status_item {
                         let status_str = String::from_utf8_lossy(status_bytes);
                         match status_str.as_ref() {
                             "done" => is_done = true,
@@ -288,15 +244,12 @@ impl NreplClient {
         Ok(result)
     }
 
-    pub fn describe(&mut self) -> Result<HashMap<String, serde_bencode::value::Value>, NreplError> {
+    pub fn describe(&mut self) -> Result<HashMap<String, Value>, NreplError> {
         let mut msg = HashMap::new();
-        msg.insert(
-            "op".to_string(),
-            serde_bencode::value::Value::Bytes(b"describe".to_vec()),
-        );
+        msg.insert("op".to_string(), Value::Bytes(b"describe".to_vec()));
         msg.insert(
             "id".to_string(),
-            serde_bencode::value::Value::Bytes(uuid::Uuid::new_v4().to_string().into_bytes()),
+            Value::Bytes(uuid::Uuid::new_v4().to_string().into_bytes()),
         );
 
         self.send_message(&msg)?;
@@ -306,17 +259,14 @@ impl NreplClient {
     pub fn interrupt(&mut self) -> Result<(), NreplError> {
         if let Some(session) = &self.session.clone() {
             let mut msg = HashMap::new();
-            msg.insert(
-                "op".to_string(),
-                serde_bencode::value::Value::Bytes(b"interrupt".to_vec()),
-            );
+            msg.insert("op".to_string(), Value::Bytes(b"interrupt".to_vec()));
             msg.insert(
                 "id".to_string(),
-                serde_bencode::value::Value::Bytes(uuid::Uuid::new_v4().to_string().into_bytes()),
+                Value::Bytes(uuid::Uuid::new_v4().to_string().into_bytes()),
             );
             msg.insert(
                 "session".to_string(),
-                serde_bencode::value::Value::Bytes(session.as_bytes().to_vec()),
+                Value::Bytes(session.as_bytes().to_vec()),
             );
 
             self.send_message(&msg)?;
@@ -328,13 +278,10 @@ impl NreplClient {
     pub fn is_connected(&mut self) -> bool {
         // Try to send a small describe message to check connection
         let mut msg = HashMap::new();
-        msg.insert(
-            "op".to_string(),
-            serde_bencode::value::Value::Bytes(b"describe".to_vec()),
-        );
+        msg.insert("op".to_string(), Value::Bytes(b"describe".to_vec()));
         msg.insert(
             "id".to_string(),
-            serde_bencode::value::Value::Bytes(uuid::Uuid::new_v4().to_string().into_bytes()),
+            Value::Bytes(uuid::Uuid::new_v4().to_string().into_bytes()),
         );
 
         match self.send_message(&msg) {
@@ -349,10 +296,7 @@ impl NreplClient {
         }
     }
 
-    fn send_message(
-        &mut self,
-        msg: &HashMap<String, serde_bencode::value::Value>,
-    ) -> Result<(), NreplError> {
+    fn send_message(&mut self, msg: &HashMap<String, Value>) -> Result<(), NreplError> {
         let encoded =
             serde_bencode::to_bytes(msg).map_err(|e| NreplError::ParseError(e.to_string()))?;
 
@@ -376,9 +320,7 @@ impl NreplClient {
         }
     }
 
-    fn read_message_with_timeout(
-        &mut self,
-    ) -> Result<HashMap<String, serde_bencode::value::Value>, NreplError> {
+    fn read_message_with_timeout(&mut self) -> Result<HashMap<String, Value>, NreplError> {
         let mut buffer = Vec::new();
         let mut temp_buffer = [0u8; 4096];
         let start_time = Instant::now();
@@ -397,9 +339,7 @@ impl NreplClient {
                     buffer.extend_from_slice(&temp_buffer[..n]);
 
                     // Try to decode what we have so far
-                    match serde_bencode::from_bytes::<HashMap<String, serde_bencode::value::Value>>(
-                        &buffer,
-                    ) {
+                    match serde_bencode::from_bytes::<HashMap<String, Value>>(&buffer) {
                         Ok(decoded) => return Ok(decoded),
                         Err(_) => {
                             // Need more data, continue reading
@@ -418,9 +358,8 @@ impl NreplClient {
                     ErrorKind::WouldBlock | ErrorKind::TimedOut => {
                         if !buffer.is_empty() {
                             // We have partial data, maybe try to decode it
-                            if let Ok(decoded) = serde_bencode::from_bytes::<
-                                HashMap<String, serde_bencode::value::Value>,
-                            >(&buffer)
+                            if let Ok(decoded) =
+                                serde_bencode::from_bytes::<HashMap<String, Value>>(&buffer)
                             {
                                 return Ok(decoded);
                             }
@@ -441,17 +380,14 @@ impl NreplClient {
     pub fn close(&mut self) -> Result<(), NreplError> {
         if let Some(session) = &self.session.clone() {
             let mut msg = HashMap::new();
-            msg.insert(
-                "op".to_string(),
-                serde_bencode::value::Value::Bytes(b"close".to_vec()),
-            );
+            msg.insert("op".to_string(), Value::Bytes(b"close".to_vec()));
             msg.insert(
                 "id".to_string(),
-                serde_bencode::value::Value::Bytes(uuid::Uuid::new_v4().to_string().into_bytes()),
+                Value::Bytes(uuid::Uuid::new_v4().to_string().into_bytes()),
             );
             msg.insert(
                 "session".to_string(),
-                serde_bencode::value::Value::Bytes(session.as_bytes().to_vec()),
+                Value::Bytes(session.as_bytes().to_vec()),
             );
 
             // Best effort - don't fail if close fails
